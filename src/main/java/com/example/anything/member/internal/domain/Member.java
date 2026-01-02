@@ -1,5 +1,6 @@
 package com.example.anything.member.internal.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -24,4 +25,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     private LoginType loginType;
+
+    @Enumerated(EnumType.STRING)
+    private MemberRole role;
 }
