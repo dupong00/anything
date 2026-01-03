@@ -19,7 +19,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Table(name = "local_member")
 public class LocalMember {
-
     @Id
     private Long id;
 

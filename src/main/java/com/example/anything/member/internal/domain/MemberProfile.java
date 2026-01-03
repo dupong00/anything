@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.logging.log4j.util.Lazy;
 
 @Entity
 @Getter @Setter
@@ -22,9 +23,9 @@ public class MemberProfile {
     @Id
     private Long id;
 
-    private String nickname;
-
     private String email;
+
+    private String nickname;
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
