@@ -1,6 +1,7 @@
 package com.example.anything.member.internal.domain;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
@@ -12,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.logging.log4j.util.Lazy;
 
 @Entity
 @Getter @Setter
@@ -27,8 +27,18 @@ public class MemberProfile {
 
     private String nickname;
 
+    @Column(unique = true, nullable = false)
+    private String phoneNumber;
+
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    public  MemberProfile(String email, String nickname, String phoneNumber, Member member) {
+        this.email = email;
+        this.nickname = nickname;
+        this.phoneNumber = phoneNumber;
+        this.member = member;
+    }
 }
