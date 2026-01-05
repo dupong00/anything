@@ -1,4 +1,4 @@
-package com.example.anything.common.security.jwt;
+package com.example.anything.common.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -60,6 +60,7 @@ public class JwtProvider {
                 .grantType(GRANT_TYPE)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .expiresIn(expirationTime / 1000)
                 .build();
     }
 
