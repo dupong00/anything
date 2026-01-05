@@ -1,6 +1,8 @@
 package com.example.anything.member.internal.controller;
 
 import com.example.anything.common.ApiResponse;
+import com.example.anything.member.dto.MemberLoginRequest;
+import com.example.anything.member.dto.MemberLoginResponse;
 import com.example.anything.member.dto.MemberSignUpRequest;
 import com.example.anything.member.internal.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,5 +28,13 @@ public class MemberController {
         memberService.signUp(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
+    }
+
+    @Operation(summary = "로그인", description = "로컬 및 소셜 계정으로 로그인")
+    @PostMapping("/public/member/login")
+    public ResponseEntity<?> login(@RequestBody MemberLoginRequest request) {
+        MemberLoginResponse memberLoginResponse = memberService.login(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(memberLoginResponse));
     }
 }

@@ -1,7 +1,7 @@
 package com.example.anything.common.config;
 
-import com.example.anything.common.security.jwt.JwtAuthenticationFilter;
-import com.example.anything.common.security.jwt.JwtProvider;
+import com.example.anything.common.jwt.JwtAuthenticationFilter;
+import com.example.anything.common.jwt.JwtProvider;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,7 +63,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://localhost:8080"
         ));
 
         configuration.setAllowedMethods(List.of(
@@ -86,13 +87,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-
-
-/*
-.requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()*/
