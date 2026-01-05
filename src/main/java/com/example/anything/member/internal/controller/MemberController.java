@@ -1,5 +1,6 @@
 package com.example.anything.member.internal.controller;
 
+import com.example.anything.common.ApiResponse;
 import com.example.anything.member.dto.MemberSignUpRequest;
 import com.example.anything.member.internal.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,11 +20,11 @@ public class MemberController {
 
     @Operation(summary = "회원가입", description = "로컬 및 소셜 계정을 통합하여 회원가입")
     @PostMapping("/public/member/signup")
-    public ResponseEntity<String> signup(@RequestBody MemberSignUpRequest request) {
+    public ResponseEntity<?> signup(@RequestBody MemberSignUpRequest request) {
         request.validate();
 
         memberService.signUp(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
     }
 }
