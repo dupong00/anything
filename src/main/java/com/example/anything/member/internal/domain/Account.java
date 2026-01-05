@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter @Setter
@@ -39,4 +40,6 @@ public abstract class Account {
         this.identifier = identifier;
         this.providerType = provider;
     }
+
+    public abstract void validatePassword(String password, PasswordEncoder encoder);
 }

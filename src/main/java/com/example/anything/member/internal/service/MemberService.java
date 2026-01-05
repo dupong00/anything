@@ -1,13 +1,21 @@
 package com.example.anything.member.internal.service;
 
+import com.example.anything.common.jwt.JwtProvider;
+import com.example.anything.common.jwt.JwtToken;
+import com.example.anything.member.dto.MemberLoginRequest;
+import com.example.anything.member.dto.MemberLoginResponse;
 import com.example.anything.member.dto.MemberSignUpRequest;
 import com.example.anything.member.internal.domain.Account;
 import com.example.anything.member.internal.domain.Member;
 import com.example.anything.member.internal.domain.MemberProfile;
+import com.example.anything.member.internal.domain.MemberRole;
+import com.example.anything.member.internal.repository.AccountRepository;
 import com.example.anything.member.internal.repository.MemberRepository;
 import com.example.anything.member.internal.service.strategy.AccountCreator;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
     private final List<AccountCreator> accountCreator;
+
 
     @Transactional
     public void signUp(MemberSignUpRequest request){
@@ -52,6 +64,23 @@ public class MemberService {
                 member)
         );
 
+        member.setRole(MemberRole.MEMBER);
+
         return member;
+    }
+
+    @Transactional(readOnly = true)
+    public MemberLoginResponse login(MemberLoginRequest request){
+        // 소셜/로컬 계정이 있는지 조회
+        Account account = accountRepository.findWithMember(request.providerType(), request.identifier())
+                .orElseThrow(() -> new EntityNotFoundException("연결된 계정을 찾을 수 없습니다."));
+
+        account.validatePassword(request.password(), passwordEncoder);
+
+        Member member = account.getMember();
+
+        JwtToken token = jwtProvider.generateToken(member.getId(), String.valueOf(member.getRole()));
+
+        return MemberLoginResponse.create(token);
     }
 }

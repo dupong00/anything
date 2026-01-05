@@ -5,6 +5,8 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
@@ -17,5 +19,11 @@ public class LocalAccount extends Account{
     public LocalAccount(Member member, String identifier, ProviderType provider,String password) {
         super(member, identifier, provider);
         this.password = password;
+    }
+
+    public void validatePassword(String password, PasswordEncoder encoder) {
+        if (!encoder.matches(password, this.password)) {
+            throw new BadCredentialsException("비밀번호가 맞지 않습니다.");
+        }
     }
 }
