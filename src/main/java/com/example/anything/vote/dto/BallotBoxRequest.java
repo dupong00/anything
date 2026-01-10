@@ -24,7 +24,7 @@ public record BallotBoxRequest (
         @Schema(description = "투표 이름", example = "아무나 먹고 싶은거 투표 ㄱㄱ")
         String title,
 
-        @Schema(description = "메뉴 카테고리", example = "[1, 3, 6, 8, 12]")
+        @Schema(description = "메뉴 카테고리 ID", example = "[1, 3, 6, 8, 12]")
         List<Long> menuList,
 
         @Schema(description = "투표 마감 시간", example = "2026-01-07 18:30:00")
