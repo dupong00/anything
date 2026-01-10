@@ -3,7 +3,6 @@ package com.example.anything.vote.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Future;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,8 +26,7 @@ public record BallotBoxRequest (
         @Schema(description = "메뉴 카테고리 ID", example = "[1, 3, 6, 8, 12]")
         List<Long> menuList,
 
-        @Schema(description = "투표 마감 시간", example = "2026-01-07 18:30:00")
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        @Schema(description = "투표 마감 시간", example = "2026-01-07T18:30:00", type = "string")
         @Future(message = "마감 시간은 현재 시간 이후여야 합니다.")
         LocalDateTime deadline
         ){}
