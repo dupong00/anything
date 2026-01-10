@@ -73,7 +73,7 @@ public class JwtProvider {
 
         Collection<? extends GrantedAuthority> authorities = Arrays
                 .stream(claims.get("auth").toString().split(","))
-                .map(SimpleGrantedAuthority::new)
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .toList();
 
         UserDetails principal = new User(claims.getSubject(),"", authorities);
