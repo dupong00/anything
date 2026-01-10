@@ -1,6 +1,5 @@
 package com.example.anything.vote.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Future;
 import java.time.LocalDateTime;

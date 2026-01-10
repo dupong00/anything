@@ -19,19 +19,18 @@ public class JacksonConfig {
     @Bean
     @Primary
     public ObjectMapper objectMapper() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
-        javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(formatter));
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
         return JsonMapper.builder()
-                .addModule(javaTimeModule)
+                .findAndAddModules()
+
+                .addModule(new JavaTimeModule()
+                        .addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter))
+                        .addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(formatter))
+                )
 
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
-
-                .defaultTimeZone(TimeZone.getTimeZone("Asia/Seoul"))
 
                 .build();
     }
