@@ -8,6 +8,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -33,7 +34,12 @@ public class JwtProvider {
     public JwtProvider(@Value("${jwt.secret}") String secretKey
                        ,@Value("${jwt.expiration-time}") Long expirationTime
                         ,@Value("${jwt.refresh-expiration-time}") Long refreshTime) {
-        this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+
+        if (secretKey == null || secretKey.length() < 32) {
+            throw new IllegalArgumentException("JWT_SECRET은 최소 32자 이상이어야 합니다.");
+        }
+
+        this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.expirationTime = expirationTime;
         this.reExpirationTime = refreshTime;
     }
@@ -41,7 +47,8 @@ public class JwtProvider {
     public JwtToken generateToken(Long userId, String role) {
         long now = (new Date()).getTime();
 
-        Date accessTokenExpire = new Date(now + expirationTime);
+        Date accessTokenExpire = new Date(now + (expirationTime * 1000));
+        Date refreshTokenExpire = new Date(now + (reExpirationTime * 1000));
 
         String accessToken = Jwts.builder()
                 .subject(String.valueOf(userId)) // 주체 설정
@@ -52,7 +59,7 @@ public class JwtProvider {
 
         String refreshToken = Jwts.builder()
                 .subject(String.valueOf(userId))
-                .expiration(new Date(now + reExpirationTime))
+                .expiration(refreshTokenExpire)
                 .signWith(secretKey)
                 .compact();
 
@@ -60,7 +67,7 @@ public class JwtProvider {
                 .grantType(GRANT_TYPE)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .expiresIn(expirationTime / 1000)
+                .expiresIn(expirationTime)
                 .build();
     }
 
