@@ -33,6 +33,7 @@ public class BallotBox {
     private String locationName;
 
     @OneToMany(mappedBy = "ballotBox", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<VoteOption> voteOptions = new ArrayList<>();
 
     public static BallotBox create(Long groupId, String title, LocalDateTime deadline,
