@@ -18,6 +18,8 @@ public class VoteOption {
 
     private String menuName;
 
+    private Long count;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ballot_box_id")
     private BallotBox ballotBox;
@@ -28,6 +30,7 @@ public class VoteOption {
         voteOption.menuId = id;
         voteOption.menuName = menuName;
         voteOption.ballotBox = ballotBox;
+        voteOption.count = 0L;
 
         return voteOption;
     }
