@@ -1,9 +1,11 @@
 package com.example.anything.vote.internal.service;
 
+import com.example.anything.common.BusinessException;
 import com.example.anything.vote.application.port.MenuModulePort;
 import com.example.anything.vote.dto.BallotBoxRequest;
 import com.example.anything.vote.dto.MenuResponseDto;
 import com.example.anything.vote.internal.domain.BallotBox;
+import com.example.anything.vote.internal.domain.VoteErrorCode;
 import com.example.anything.vote.internal.repository.BallotBoxRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,7 +30,7 @@ public class VoteService {
         List<MenuResponseDto> menus = menuModulePort.getMenusByIds(new ArrayList<>(uniqueIds));
 
         if (menus.size() != uniqueIds.size()) {
-            throw new IllegalArgumentException("존재하지 않는 메뉴가 포함되어 있습니다.");
+            throw new BusinessException(VoteErrorCode.MENU_NOT_FOUND);
         }
 
         BallotBox ballotBox = BallotBox.create(
