@@ -1,5 +1,6 @@
 package com.example.anything.member.internal.domain;
 
+import com.example.anything.common.BusinessException;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -23,7 +24,7 @@ public class LocalAccount extends Account{
 
     public void validatePassword(String password, PasswordEncoder encoder) {
         if (!encoder.matches(password, this.password)) {
-            throw new BadCredentialsException("비밀번호가 맞지 않습니다.");
+            throw new BusinessException(MemberErrorCode.INVALID_PASSWORD);
         }
     }
 }

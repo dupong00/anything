@@ -1,5 +1,6 @@
 package com.example.anything.member.internal.service;
 
+import com.example.anything.common.BusinessException;
 import com.example.anything.common.jwt.JwtProvider;
 import com.example.anything.common.jwt.JwtToken;
 import com.example.anything.member.dto.MemberLoginRequest;
@@ -7,6 +8,7 @@ import com.example.anything.member.dto.MemberLoginResponse;
 import com.example.anything.member.dto.MemberSignUpRequest;
 import com.example.anything.member.internal.domain.Account;
 import com.example.anything.member.internal.domain.Member;
+import com.example.anything.member.internal.domain.MemberErrorCode;
 import com.example.anything.member.internal.domain.MemberProfile;
 import com.example.anything.member.internal.domain.MemberRole;
 import com.example.anything.member.internal.repository.AccountRepository;
@@ -39,13 +41,13 @@ public class MemberService {
                 .anyMatch(a -> a.getProviderType() == request.providerType());
 
         if (isAlreadyLinked){
-            throw new IllegalArgumentException("이미 해당 소셜 계정으로 연결되어 있습니다.");
+            throw new BusinessException(MemberErrorCode.ALREADY_LINKED_ACCOUNT);
         }
 
         AccountCreator creator = accountCreator.stream()
                 .filter(c -> c.supports(request.providerType()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 로그인 방식입니다."));
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.UNSUPPORTED_PROVIDER));
 
         Account account = creator.create(member, request);
 
@@ -73,7 +75,7 @@ public class MemberService {
     public MemberLoginResponse login(MemberLoginRequest request){
         // 소셜/로컬 계정이 있는지 조회
         Account account = accountRepository.findWithMember(request.providerType(), request.identifier())
-                .orElseThrow(() -> new EntityNotFoundException("연결된 계정을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         account.validatePassword(request.password(), passwordEncoder);
 
