@@ -80,6 +80,8 @@ public class VoteService {
         BallotBox ballotBox = ballotBoxRepository.findById(ballotBoxId)
                 .orElseThrow(() -> new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_FOUND));
 
+        ballotBox.checkAndClose();
+
         if (ballotBox.getStatus() != Status.ACTIVE){
             throw new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_ACTIVE);
         }
