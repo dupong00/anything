@@ -35,8 +35,6 @@ public class VoteRecord {
     private VoteOption voteOption;
 
     public static VoteRecord create(Long memberId, BallotBox ballotBox, VoteOption voteOption) {
-        voteOption.addCount();
-
         return VoteRecord.builder()
                 .memberId(memberId)
                 .ballotBox(ballotBox)

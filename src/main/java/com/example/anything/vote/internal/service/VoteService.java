@@ -80,10 +80,12 @@ public class VoteService {
         }
 
         for (Long menu : menus) {
-            VoteOption voteOption = voteOptionRepository.findByBallotBoxIdAndMenuId(ballotBoxId, menu)
+            VoteOption voteOption = voteOptionRepository.findByBallotBox_IdAndMenuId(ballotBoxId, menu)
                             .orElseThrow(() -> new BusinessException(VoteErrorCode.VOTE_OPTION_NOT_FOUND));
 
             VoteRecord voteRecord = VoteRecord.create(userId, ballotBox, voteOption);
+
+            voteOption.addCount();
 
             voteRecordRepository.save(voteRecord);
         }
