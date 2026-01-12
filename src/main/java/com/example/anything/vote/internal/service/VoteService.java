@@ -64,6 +64,11 @@ public class VoteService {
             throw new BusinessException(VoteErrorCode.INVALID_VOTE_COUNT);
         }
 
+        Set<Long> uniqueMenus = new HashSet<>(menus);
+        if (uniqueMenus.size() != menus.size()){
+            throw new BusinessException(VoteErrorCode.DUPLICATE_MENU_SELECTION);
+        }
+
         if (menus.size() > 3){
             throw new BusinessException(VoteErrorCode.EXCEED_MAX_COUNT);
         }

@@ -15,7 +15,8 @@ public enum VoteErrorCode implements ErrorCode {
     VOTE_OPTION_NOT_FOUND(HttpStatus.BAD_REQUEST, "V005", "해당 투표함에서 선택 불가능한 메뉴입니다."),
     INVALID_VOTE_COUNT(HttpStatus.BAD_REQUEST, "V006", "최소 한개 이상 투표해야 합니다."),
     EXCEED_MAX_COUNT(HttpStatus.BAD_REQUEST, "V007", "투표 개수는 최대 3개까지 선택 가능합니다."),
-    BALLOT_BOX_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "V008", "현재 투표가 활성화 되어 있지 않습니다.");
+    BALLOT_BOX_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "V008", "현재 투표가 활성화 되어 있지 않습니다."),
+    DUPLICATE_MENU_SELECTION(HttpStatus.BAD_REQUEST,"V009", "중복된 항목은 투표가 불가능합니다.");
 
 
     private final HttpStatus httpStatus;
