@@ -35,11 +35,11 @@ public class VoteController {
     @Operation(summary = "투표 하기", description = "투표 기능")
     public ResponseEntity<?> castVote(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody VoteRequest voteRequest
+            @Valid @RequestBody VoteRequest voteRequest
             ){
         Long userId = Long.parseLong(userDetails.getUsername());
 
-        Long ballotBoxId = voteService.castVote(userId, voteRequest.BallotBoxId(), voteRequest.menuList());
+        Long ballotBoxId = voteService.castVote(userId, voteRequest.ballotBoxId(), voteRequest.menuList());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(ballotBoxId));
     }
