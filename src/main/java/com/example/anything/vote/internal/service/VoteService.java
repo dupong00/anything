@@ -5,8 +5,13 @@ import com.example.anything.vote.application.port.MenuModulePort;
 import com.example.anything.vote.dto.BallotBoxRequest;
 import com.example.anything.vote.dto.MenuResponseDto;
 import com.example.anything.vote.internal.domain.BallotBox;
+import com.example.anything.vote.internal.domain.Status;
 import com.example.anything.vote.internal.domain.VoteErrorCode;
+import com.example.anything.vote.internal.domain.VoteOption;
+import com.example.anything.vote.internal.domain.VoteRecord;
 import com.example.anything.vote.internal.repository.BallotBoxRepository;
+import com.example.anything.vote.internal.repository.VoteOptionRepository;
+import com.example.anything.vote.internal.repository.VoteRecordRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class VoteService {
     private final MenuModulePort menuModulePort;
     private final BallotBoxRepository ballotBoxRepository;
+    private final VoteOptionRepository voteOptionRepository;
+    private final VoteRecordRepository voteRecordRepository;
 
     @Transactional
     public Long createBallotBox(BallotBoxRequest request){
@@ -49,5 +56,37 @@ public class VoteService {
         ballotBoxRepository.save(ballotBox);
 
         return ballotBox.getBallotBoxId();
+    }
+
+    @Transactional
+    public Long castVote(Long userId, Long ballotBoxId, List<Long> menus){
+        if (menus == null || menus.isEmpty()){
+            throw new BusinessException(VoteErrorCode.INVALID_VOTE_COUNT);
+        }
+
+        if (menus.size() > 3){
+            throw new BusinessException(VoteErrorCode.EXCEED_MAX_COUNT);
+        }
+
+        if (voteRecordRepository.existsByMemberIdAndBallotBoxId(userId, ballotBoxId)) {
+            throw new BusinessException(VoteErrorCode.ALREADY_VOTED);
+        }
+
+        BallotBox ballotBox = ballotBoxRepository.findByBallotBoxId(ballotBoxId)
+                .orElseThrow(() -> new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_FOUND));
+
+        if (ballotBox.getStatus() != Status.ACTIVE){
+            throw new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_ACTIVE);
+        }
+
+        for (Long menu : menus) {
+            VoteOption voteOption = voteOptionRepository.findByBallotBoxAndMenuId(ballotBoxId, menu)
+                            .orElseThrow(() -> new BusinessException(VoteErrorCode.VOTE_OPTION_NOT_FOUND));
+
+            VoteRecord voteRecord = VoteRecord.create(userId, ballotBox, voteOption);
+
+            voteRecordRepository.save(voteRecord);
+        }
+        return ballotBoxId;
     }
 }
