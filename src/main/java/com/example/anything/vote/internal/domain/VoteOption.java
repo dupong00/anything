@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,6 +32,9 @@ public class VoteOption {
     @JoinColumn(name = "ballot_box_id")
     private BallotBox ballotBox;
 
+    @Version
+    private Long version;
+
     public static VoteOption create(Long id, String menuName, BallotBox ballotBox) {
         VoteOption voteOption = new VoteOption();
 
@@ -43,6 +47,6 @@ public class VoteOption {
     }
 
     public void addCount() {
-        this.count++;
+        this.count = (this.count == null) ? 1L : this.count + 1;
     }
 }
