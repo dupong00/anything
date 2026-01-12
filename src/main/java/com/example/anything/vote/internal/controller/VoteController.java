@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,10 +34,10 @@ public class VoteController {
     @PostMapping("/member/vote/cast")
     @Operation(summary = "투표 하기", description = "투표 기능")
     public ResponseEntity<?> castVote(
-            @AuthenticationPrincipal Principal principal,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody VoteRequest voteRequest
             ){
-        Long userId = Long.parseLong(principal.getName());
+        Long userId = Long.parseLong(userDetails.getUsername());
 
         Long ballotBoxId = voteService.castVote(userId, voteRequest.BallotBoxId(), voteRequest.menuList());
 

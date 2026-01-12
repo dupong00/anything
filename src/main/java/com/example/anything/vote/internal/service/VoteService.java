@@ -55,7 +55,7 @@ public class VoteService {
 
         ballotBoxRepository.save(ballotBox);
 
-        return ballotBox.getBallotBoxId();
+        return ballotBox.getId();
     }
 
     @Transactional
@@ -72,7 +72,7 @@ public class VoteService {
             throw new BusinessException(VoteErrorCode.ALREADY_VOTED);
         }
 
-        BallotBox ballotBox = ballotBoxRepository.findByBallotBoxId(ballotBoxId)
+        BallotBox ballotBox = ballotBoxRepository.findById(ballotBoxId)
                 .orElseThrow(() -> new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_FOUND));
 
         if (ballotBox.getStatus() != Status.ACTIVE){
@@ -80,7 +80,7 @@ public class VoteService {
         }
 
         for (Long menu : menus) {
-            VoteOption voteOption = voteOptionRepository.findByBallotBoxAndMenuId(ballotBoxId, menu)
+            VoteOption voteOption = voteOptionRepository.findByBallotBoxIdAndMenuId(ballotBoxId, menu)
                             .orElseThrow(() -> new BusinessException(VoteErrorCode.VOTE_OPTION_NOT_FOUND));
 
             VoteRecord voteRecord = VoteRecord.create(userId, ballotBox, voteOption);

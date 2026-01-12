@@ -1,6 +1,7 @@
 package com.example.anything.vote.internal.domain;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -25,7 +26,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "ballot_box")
 public class BallotBox {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long ballotBoxId;
+    @Column(name = "ballot_box_id")
+    private Long id;
 
     private Long groupId;
     private String title;

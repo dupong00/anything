@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VoteOptionRepository extends JpaRepository<VoteOption, Long> {
-    Optional<VoteOption> findByBallotBoxAndMenuId(Long ballotBoxId, Long menuId);
+    Optional<VoteOption> findByBallotBoxIdAndMenuId(Long ballotBoxId, Long menuId);
 }
