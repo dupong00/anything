@@ -26,7 +26,7 @@ public class GroupMember {
 
     Long memberId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     Group group;
 }
