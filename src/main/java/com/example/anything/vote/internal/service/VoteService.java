@@ -1,11 +1,14 @@
 package com.example.anything.vote.internal.service;
 
 import com.example.anything.common.BusinessException;
+import com.example.anything.vote.Status;
+import com.example.anything.vote.application.port.GroupModulePort;
 import com.example.anything.vote.application.port.MenuModulePort;
+import com.example.anything.vote.dto.BallotBoxDetailResponse;
 import com.example.anything.vote.dto.BallotBoxRequest;
+import com.example.anything.vote.dto.BallotBoxesResponse;
 import com.example.anything.vote.dto.MenuResponseDto;
 import com.example.anything.vote.internal.domain.BallotBox;
-import com.example.anything.vote.internal.domain.Status;
 import com.example.anything.vote.internal.domain.VoteErrorCode;
 import com.example.anything.vote.internal.domain.VoteOption;
 import com.example.anything.vote.internal.domain.VoteRecord;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class VoteService {
     private final MenuModulePort menuModulePort;
+    private final GroupModulePort groupModulePort;
     private final BallotBoxRepository ballotBoxRepository;
     private final VoteOptionRepository voteOptionRepository;
     private final VoteRecordRepository voteRecordRepository;
@@ -97,5 +101,28 @@ public class VoteService {
             voteRecordRepository.save(voteRecord);
         }
         return ballotBoxId;
+    }
+
+    public List<BallotBoxesResponse> getBallotBoxes(Long memberId, Status status){
+        List<Long> myGroupIds = groupModulePort.getMyGroupIds(memberId);
+
+        List<BallotBox> ballotBoxes = (status == null)
+                ? ballotBoxRepository.findAllByGroupIdIn(myGroupIds)
+                : ballotBoxRepository.findAllByGroupIdInAndStatus(myGroupIds, status);
+
+        return ballotBoxes.stream()
+                .map(BallotBoxesResponse::from)
+                .toList();
+    }
+
+    public BallotBoxDetailResponse getBallotBox(Long memberId, Long ballotBoxId){
+        BallotBox ballotBox = ballotBoxRepository.findById(ballotBoxId)
+                .orElseThrow(() -> new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_FOUND));
+
+        if (!groupModulePort.isMemberOfGroup(memberId, ballotBox.getGroupId())){
+            throw new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_FOUND);
+        }
+
+        return BallotBoxDetailResponse.from(ballotBox);
     }
 }
