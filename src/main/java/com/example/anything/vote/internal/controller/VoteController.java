@@ -6,7 +6,6 @@ import com.example.anything.vote.dto.BallotBoxDetailResponse;
 import com.example.anything.vote.dto.BallotBoxRequest;
 import com.example.anything.vote.dto.BallotBoxesResponse;
 import com.example.anything.vote.dto.VoteRequest;
-import com.example.anything.vote.internal.domain.BallotBox;
 import com.example.anything.vote.internal.service.VoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
