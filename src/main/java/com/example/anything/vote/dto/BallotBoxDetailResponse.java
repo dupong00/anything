@@ -17,7 +17,7 @@ public record BallotBoxDetailResponse (
 ){
     public static BallotBoxDetailResponse from(BallotBox ballotBox) {
         int total = ballotBox.getVoteOptions().stream()
-                .mapToInt(VoteOption::getCount)
+                .mapToInt(opt -> opt.getCount() != null ? opt.getCount() : 0)
                 .sum();
 
         return new BallotBoxDetailResponse(
