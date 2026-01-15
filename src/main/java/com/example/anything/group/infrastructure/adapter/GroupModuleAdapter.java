@@ -19,6 +19,6 @@ public class GroupModuleAdapter implements GroupModulePort {
 
     @Override
     public boolean isMemberOfGroup(Long memberId, Long groupId) {
-        return groupMemberRepository.existsByMemberIdAndGroupId(memberId,groupId);
+        return groupMemberRepository.existsByMemberIdAndGroup_Id(memberId,groupId);
     }
 }

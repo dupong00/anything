@@ -12,5 +12,5 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember,Long> {
     @Query("SELECT gm.group.id FROM GroupMember gm WHERE gm.memberId = :memberId")
     List<Long> findAllByMemberId(@Param("memberId") long memberId);
 
-    boolean existsByMemberIdAndGroupId(long memberId, long groupId);
+    boolean existsByMemberIdAndGroup_Id(long memberId, long groupId);
 }
