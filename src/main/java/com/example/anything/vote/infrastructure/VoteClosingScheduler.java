@@ -1,7 +1,7 @@
 package com.example.anything.vote.infrastructure;
 
+import com.example.anything.vote.Status;
 import com.example.anything.vote.internal.domain.BallotBox;
-import com.example.anything.vote.internal.domain.Status;
 import com.example.anything.vote.internal.repository.BallotBoxRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
