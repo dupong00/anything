@@ -106,6 +106,10 @@ public class VoteService {
     public List<BallotBoxesResponse> getBallotBoxes(Long memberId, Status status){
         List<Long> myGroupIds = groupModulePort.getMyGroupIds(memberId);
 
+        if (myGroupIds.isEmpty()) {
+            return List.of();
+        }
+
         List<BallotBox> ballotBoxes = (status == null)
                 ? ballotBoxRepository.findAllByGroupIdIn(myGroupIds)
                 : ballotBoxRepository.findAllByGroupIdInAndStatus(myGroupIds, status);
