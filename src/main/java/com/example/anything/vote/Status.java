@@ -1,4 +1,4 @@
-package com.example.anything.vote.internal.domain;
+package com.example.anything.vote;
 
 public enum Status {
     ACTIVE, CANCELLED, EXPIRED, CLOSED;

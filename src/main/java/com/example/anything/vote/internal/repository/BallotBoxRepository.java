@@ -1,7 +1,7 @@
 package com.example.anything.vote.internal.repository;
 
+import com.example.anything.vote.Status;
 import com.example.anything.vote.internal.domain.BallotBox;
-import com.example.anything.vote.internal.domain.Status;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +14,7 @@ public interface BallotBoxRepository extends JpaRepository<BallotBox, Long> {
     List<BallotBox> findAllByStatusAndDeadlineBefore(Status status, LocalDateTime deadline);
 
     Optional<BallotBox> findById(Long ballotBoxId);
+
+    List<BallotBox> findAllByGroupIdIn(List<Long> groupIds);
+    List<BallotBox> findAllByGroupIdInAndStatus(List<Long> groupIds, Status status);
 }
