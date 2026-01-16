@@ -12,9 +12,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BallotBoxRepository extends JpaRepository<BallotBox, Long> {
     List<BallotBox> findAllByStatusAndDeadlineBefore(Status status, LocalDateTime deadline);
-
     Optional<BallotBox> findById(Long ballotBoxId);
 
-    List<BallotBox> findAllByGroupIdIn(List<Long> groupIds);
+    List<BallotBox> findAllByGroupIdInAndStatusNot(List<Long> groupIds, Status status);
     List<BallotBox> findAllByGroupIdInAndStatus(List<Long> groupIds, Status status);
 }

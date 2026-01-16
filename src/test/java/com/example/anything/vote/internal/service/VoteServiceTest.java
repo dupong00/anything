@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import com.example.anything.common.BusinessException;
+import com.example.anything.vote.Status;
 import com.example.anything.vote.application.port.GroupModulePort;
 import com.example.anything.vote.application.port.MenuModulePort;
 import com.example.anything.vote.dto.*;
@@ -45,7 +46,7 @@ class VoteServiceTest {
                 new MenuResponseDto(2L, "된장찌개")
         ));
 
-        voteService.createBallotBox(request);
+        voteService.createBallotBox(request, memberId);
 
         verify(ballotBoxRepository, times(1)).save(any(BallotBox.class));
     }
@@ -55,7 +56,7 @@ class VoteServiceTest {
     void castVote_Success() {
         List<Long> menus = List.of(1L, 2L);
 
-        BallotBox ballotBox = BallotBox.create(groupId, "점심 메뉴 투표", LocalDateTime.now().plusDays(1), 0, 0, "장소");
+        BallotBox ballotBox = BallotBox.create(groupId, memberId,"오늘 점심 메뉴", LocalDateTime.now().plusDays(1), 0, 0, "장소");
 
         given(voteRecordRepository.existsByMemberIdAndBallotBoxId(memberId, ballotBoxId)).willReturn(false);
         given(ballotBoxRepository.findById(ballotBoxId)).willReturn(Optional.of(ballotBox));
@@ -94,9 +95,9 @@ class VoteServiceTest {
         given(groupModulePort.getMyGroupIds(memberId)).willReturn(myGroupIds);
 
         // 가짜 투표함 리스트 생성
-        BallotBox box1 = BallotBox.create(100L, "투표 1", null, 0.0, 0.0, "장소 1");
-        BallotBox box2 = BallotBox.create(200L, "투표 2", null, 0.0, 0.0, "장소 2");
-        given(ballotBoxRepository.findAllByGroupIdIn(myGroupIds)).willReturn(List.of(box1, box2));
+        BallotBox box1 = BallotBox.create(100L, memberId, "투표 1", null, 0.0, 0.0, "장소 1");
+        BallotBox box2 = BallotBox.create(200L, memberId, "투표 2", null, 0.0, 0.0, "장소 2");
+        given(ballotBoxRepository.findAllByGroupIdInAndStatusNot(myGroupIds, Status.DELETED)).willReturn(List.of(box1, box2));
 
         // when
         List<BallotBoxesResponse> result = voteService.getBallotBoxes(memberId, null);
@@ -106,7 +107,7 @@ class VoteServiceTest {
         assertThat(result.get(0).title()).isEqualTo("투표 1");
         assertThat(result.get(1).title()).isEqualTo("투표 2");
 
-        verify(ballotBoxRepository).findAllByGroupIdIn(myGroupIds);
+        verify(ballotBoxRepository).findAllByGroupIdInAndStatusNot(myGroupIds, Status.DELETED);
     }
 
     @Test
@@ -119,14 +120,14 @@ class VoteServiceTest {
 
         // then
         assertThat(result).isEmpty();
-        verify(ballotBoxRepository, never()).findAllByGroupIdIn(any());
+        verify(ballotBoxRepository, never()).findAllByGroupIdInAndStatusNot(any(), any());
     }
 
     @Test
     @DisplayName("상세 조회: 그룹 멤버가 존재하는 투표함을 조회하면 상세 정보를 반환한다")
     void getBallotBox_Success() {
         // given
-        BallotBox ballotBox = BallotBox.create(groupId, "점심 메뉴 투표", LocalDateTime.now().plusDays(1), 37.0, 127.0, "식당");
+        BallotBox ballotBox = BallotBox.create(groupId, memberId, "점심 메뉴 투표", LocalDateTime.now().plusDays(1), 37.0, 127.0, "식당");
         ballotBox.addVoteOption(1L, "김치찌개");
 
         given(ballotBoxRepository.findById(ballotBoxId)).willReturn(Optional.of(ballotBox));
@@ -150,7 +151,7 @@ class VoteServiceTest {
     @DisplayName("상세 조회: 그룹 멤버가 아닌 유저가 조회하면 BALLOT_BOX_NOT_FOUND 예외를 던진다")
     void getBallotBox_Forbidden_Member() {
         // given
-        BallotBox ballotBox = BallotBox.create(groupId, "제목", null, 0.0, 0.0, "장소");
+        BallotBox ballotBox = BallotBox.create(groupId, memberId, "제목", null, 0.0, 0.0, "장소");
         given(ballotBoxRepository.findById(ballotBoxId)).willReturn(Optional.of(ballotBox));
         given(groupModulePort.isMemberOfGroup(memberId, groupId)).willReturn(false);
 

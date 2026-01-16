@@ -35,7 +35,7 @@ public class VoteService {
     private final VoteRecordRepository voteRecordRepository;
 
     @Transactional
-    public Long createBallotBox(BallotBoxRequest request){
+    public Long createBallotBox(BallotBoxRequest request, Long memberId){
         Set<Long> uniqueIds = new HashSet<>(request.menuList());
 
         List<MenuResponseDto> menus = menuModulePort.getMenusByIds(new ArrayList<>(uniqueIds));
@@ -46,6 +46,7 @@ public class VoteService {
 
         BallotBox ballotBox = BallotBox.create(
                 request.groupId(),
+                memberId,
                 request.title(),
                 request.deadline(),
                 request.latitude(),
@@ -103,6 +104,14 @@ public class VoteService {
         return ballotBoxId;
     }
 
+    @Transactional
+    public void deleteBallotBox(Long userId, Long ballotBoxId){
+        BallotBox ballotBox = ballotBoxRepository.findById(ballotBoxId)
+                .orElseThrow(() -> new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_FOUND));
+
+        ballotBox.delete(userId);
+    }
+
     public List<BallotBoxesResponse> getBallotBoxes(Long memberId, Status status){
         List<Long> myGroupIds = groupModulePort.getMyGroupIds(memberId);
 
@@ -111,7 +120,7 @@ public class VoteService {
         }
 
         List<BallotBox> ballotBoxes = (status == null)
-                ? ballotBoxRepository.findAllByGroupIdIn(myGroupIds)
+                ? ballotBoxRepository.findAllByGroupIdInAndStatusNot(myGroupIds, Status.DELETED)
                 : ballotBoxRepository.findAllByGroupIdInAndStatus(myGroupIds, status);
 
         return ballotBoxes.stream()
