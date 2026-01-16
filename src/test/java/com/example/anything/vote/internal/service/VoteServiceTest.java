@@ -1,6 +1,9 @@
 package com.example.anything.vote.internal.service;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.*;
 
 import com.example.anything.common.BusinessException;
@@ -159,5 +162,60 @@ class VoteServiceTest {
         assertThatThrownBy(() -> voteService.getBallotBox(memberId, ballotBoxId))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", VoteErrorCode.BALLOT_BOX_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("투표함 생성자가 삭제를 요청하면 상태를 DELETED로 변경한다")
+    void deleteBallotBox_Success() {
+        // given
+        BallotBox ballotBox = BallotBox.builder()
+                .id(ballotBoxId)
+                .creatorId(memberId)
+                .status(Status.ACTIVE)
+                .build();
+
+        given(ballotBoxRepository.findById(ballotBoxId)).willReturn(Optional.of(ballotBox));
+
+        // when
+        voteService.deleteBallotBox(memberId, ballotBoxId);
+
+        // then
+        assertEquals(Status.DELETED, ballotBox.getStatus());
+        assertNotNull(ballotBox.getClosedAt());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 투표함 ID인 경우 예외가 발생한다")
+    void deleteBallotBox_NotFound() {
+        // given
+        given(ballotBoxRepository.findById(ballotBoxId)).willReturn(Optional.empty());
+
+        // when & then
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> voteService.deleteBallotBox(memberId, ballotBoxId));
+
+        assertEquals(VoteErrorCode.BALLOT_BOX_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("실패: 생성자가 아닌 유저가 삭제를 요청하면 권한 예외가 발생한다")
+    void deleteBallotBox_NoAuthority() {
+        // given
+        Long othermemberId = 999L;
+        BallotBox ballotBox = BallotBox.builder()
+                .id(ballotBoxId)
+                .creatorId(memberId) // 실제 생성자는 1L
+                .status(Status.ACTIVE)
+                .build();
+
+        given(ballotBoxRepository.findById(ballotBoxId)).willReturn(Optional.of(ballotBox));
+
+        // when & then
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> voteService.deleteBallotBox(othermemberId, ballotBoxId));
+
+        assertEquals(VoteErrorCode.BALLOT_BOX_NOT_AUTHORITY, exception.getErrorCode());
+        // 상태가 변경되지 않았는지 확인
+        assertEquals(Status.ACTIVE, ballotBox.getStatus());
     }
 }
