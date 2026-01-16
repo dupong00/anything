@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,10 +30,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class VoteController {
     private final VoteService voteService;
 
-    @PostMapping("/member/vote/ballot-box")
+    @PostMapping("/member/ballot-boxes")
     @Operation(summary = "투표 생성", description = "투표 생성")
-    public ResponseEntity<?> createBallotBox(@Valid @RequestBody BallotBoxRequest ballotBoxRequest){
-        Long ballotBoxId = voteService.createBallotBox(ballotBoxRequest);
+    public ResponseEntity<?> createBallotBox(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody BallotBoxRequest ballotBoxRequest
+    ){
+        Long userId = Long.parseLong(userDetails.getUsername());
+
+        Long ballotBoxId = voteService.createBallotBox(ballotBoxRequest, userId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(ballotBoxId));
     }
@@ -50,7 +56,20 @@ public class VoteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(ballotBoxId));
     }
 
-    @GetMapping("/member/ballot-box")
+    @DeleteMapping("/member/ballot-boxes/{id}")
+    @Operation(summary = "투표함 삭제 하기")
+    public ResponseEntity<?> deleteBallotBox(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("id") Long ballotBoxId
+    ){
+        Long userId = Long.parseLong(userDetails.getUsername());
+
+        voteService.deleteBallotBox(userId, ballotBoxId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null));
+    }
+
+    @GetMapping("/member/ballot-boxes")
     @Operation(summary = "전체 투표함 가져오기")
     public ResponseEntity<?> getBallotBoxes(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -63,7 +82,7 @@ public class VoteController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(ballotBoxes));
     }
 
-    @GetMapping("/member/ballot-box/{id}")
+    @GetMapping("/member/ballot-boxes/{id}")
     @Operation(summary = "특정 투표함 상세 조회")
     public ResponseEntity<?> getBallotBox(
             @AuthenticationPrincipal UserDetails userDetails,
