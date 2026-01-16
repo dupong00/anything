@@ -78,12 +78,12 @@ public class BallotBox {
     }
 
     public void delete(Long memberId){
-        if (this.status == Status.DELETED) {
-            throw new BusinessException(VoteErrorCode.ALREADY_DELETED);
-        }
-
         if (!Objects.equals(memberId, this.creatorId)){
             throw new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_AUTHORITY);
+        }
+
+        if (this.status == Status.DELETED) {
+            throw new BusinessException(VoteErrorCode.ALREADY_DELETED);
         }
 
         this.status = Status.DELETED;
