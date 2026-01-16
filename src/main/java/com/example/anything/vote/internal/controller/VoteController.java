@@ -56,7 +56,7 @@ public class VoteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(ballotBoxId));
     }
 
-    @DeleteMapping("/member/ballot-box/{id}")
+    @DeleteMapping("/member/ballot-boxes/{id}")
     @Operation(summary = "투표함 삭제 하기")
     public ResponseEntity<?> deleteBallotBox(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -69,7 +69,7 @@ public class VoteController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null));
     }
 
-    @GetMapping("/member/ballot-box")
+    @GetMapping("/member/ballot-boxes")
     @Operation(summary = "전체 투표함 가져오기")
     public ResponseEntity<?> getBallotBoxes(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -82,7 +82,7 @@ public class VoteController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(ballotBoxes));
     }
 
-    @GetMapping("/member/ballot-box/{id}")
+    @GetMapping("/member/ballot-boxes/{id}")
     @Operation(summary = "특정 투표함 상세 조회")
     public ResponseEntity<?> getBallotBox(
             @AuthenticationPrincipal UserDetails userDetails,
