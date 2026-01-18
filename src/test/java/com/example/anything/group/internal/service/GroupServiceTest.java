@@ -15,7 +15,6 @@ import com.example.anything.group.internal.domain.GroupErrorCode;
 import com.example.anything.group.internal.domain.GroupMember;
 import com.example.anything.group.internal.repository.GroupMemberRepository;
 import com.example.anything.group.internal.repository.GroupRepository;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -114,14 +113,14 @@ class GroupServiceTest {
 
         given(groupRepository.findById(groupId)).willReturn(Optional.of(group));
         given(groupMemberRepository.existsByMemberIdAndGroup_Id(memberId, groupId)).willReturn(true);
-        given(groupMemberRepository.findAllByGroupId(groupId)).willReturn(members);
+        given(groupMemberRepository.findAllByGroup_Id(groupId)).willReturn(members);
 
         // when
         List<GroupMember> result = groupService.getGroupMembers(memberId, groupId);
 
         // then
         assertThat(result).hasSize(2);
-        verify(groupMemberRepository).findAllByGroupId(groupId);
+        verify(groupMemberRepository).findAllByGroup_Id(groupId);
     }
 
     @Test

@@ -6,7 +6,6 @@ import com.example.anything.group.internal.domain.GroupErrorCode;
 import com.example.anything.group.internal.domain.GroupMember;
 import com.example.anything.group.internal.repository.GroupMemberRepository;
 import com.example.anything.group.internal.repository.GroupRepository;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,6 +46,6 @@ public class GroupService {
             throw new BusinessException(GroupErrorCode.NOT_GROUP_MEMBER);
         }
 
-        return groupMemberRepository.findAllByGroupId(groupId);
+        return groupMemberRepository.findAllByGroup_Id(groupId);
     }
 }
