@@ -54,6 +54,10 @@ public class GroupService {
 
     @Transactional
     public void joinGroup(Long memberId, String inviteCode){
+        if (inviteCode == null || inviteCode.isBlank()) {
+            throw new BusinessException(GroupErrorCode.INVALID_INVITE_CODE);
+        }
+
         Group group = groupRepository.findByInvitedCode(inviteCode)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
 
