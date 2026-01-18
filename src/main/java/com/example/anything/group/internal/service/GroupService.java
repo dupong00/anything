@@ -8,6 +8,7 @@ import com.example.anything.group.internal.repository.GroupMemberRepository;
 import com.example.anything.group.internal.repository.GroupRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,8 +63,11 @@ public class GroupService {
 
         group.validateInviteCode(inviteCode);
 
-        GroupMember newMember = GroupMember.create(memberId, group);
-
-        groupMemberRepository.save(newMember);
+        try {
+            GroupMember newMember = GroupMember.create(memberId, group);
+            groupMemberRepository.save(newMember);
+        } catch (DataIntegrityViolationException e) {
+            throw new BusinessException(GroupErrorCode.ALREADY_GROUP_MEMBER);
+        }
     }
 }
