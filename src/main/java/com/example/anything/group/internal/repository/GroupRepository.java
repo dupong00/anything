@@ -9,8 +9,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface GroupRepository extends JpaRepository<Group,Long> {
     @Query("SELECT g FROM Group g JOIN GroupMember gm ON g.id = gm.group.id " +
-            "WHERE gm.memberId = :memberId AND g.expiredAt > :now")
-    List<Group> findActiveGroupsByMemberId(@Param("memberId") Long memberId, @Param("now") LocalDateTime now);
-
-    void deleteByExpiredAtBefore(LocalDateTime expiredAt);
+            "WHERE gm.memberId = :memberId")
+    List<Group> findAllGroupsByMemberId(@Param("memberId") Long memberId);
 }

@@ -91,7 +91,7 @@ class GroupServiceTest {
         // given
         Long memberId = 1L;
         List<Group> expectedGroups = List.of(Group.create("Group A", 1L), Group.create("Group B", 1L));
-        given(groupRepository.findActiveGroupsByMemberId(eq(memberId), any(LocalDateTime.class)))
+        given(groupRepository.findAllGroupsByMemberId(eq(memberId)))
                 .willReturn(expectedGroups);
 
         // when
@@ -100,7 +100,7 @@ class GroupServiceTest {
         // then
         assertThat(result).hasSize(2);
         assertThat(result.getFirst().getName()).isEqualTo("Group A");
-        verify(groupRepository).findActiveGroupsByMemberId(eq(memberId), any(LocalDateTime.class));
+        verify(groupRepository).findAllGroupsByMemberId(eq(memberId));
     }
 
     @Test

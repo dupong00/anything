@@ -36,7 +36,7 @@ public class GroupService {
     }
 
     public List<Group> getGroups(Long memberId){
-        return groupRepository.findActiveGroupsByMemberId(memberId, LocalDateTime.now());
+        return groupRepository.findAllGroupsByMemberId(memberId);
     }
 
     public List<GroupMember> getGroupMembers(Long memberId,Long groupId){
