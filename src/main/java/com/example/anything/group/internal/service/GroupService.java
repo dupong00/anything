@@ -3,7 +3,11 @@ package com.example.anything.group.internal.service;
 import com.example.anything.common.BusinessException;
 import com.example.anything.group.internal.domain.Group;
 import com.example.anything.group.internal.domain.GroupErrorCode;
+import com.example.anything.group.internal.domain.GroupMember;
+import com.example.anything.group.internal.repository.GroupMemberRepository;
 import com.example.anything.group.internal.repository.GroupRepository;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class GroupService {
     private final GroupRepository groupRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     @Transactional
     public Long createGroup(String name, Long ownerId){
@@ -28,5 +33,20 @@ public class GroupService {
         group.validateOwner(ownerId);
 
         groupRepository.delete(group);
+    }
+
+    public List<Group> getGroups(Long memberId){
+        return groupRepository.findActiveGroupsByMemberId(memberId, LocalDateTime.now());
+    }
+
+    public List<GroupMember> getGroupMembers(Long memberId,Long groupId){
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
+
+        if (!groupMemberRepository.existsByMemberIdAndGroup_Id(memberId, groupId)){
+            throw new BusinessException(GroupErrorCode.NOT_GROUP_MEMBER);
+        }
+
+        return groupMemberRepository.findAllByGroupId(groupId);
     }
 }
