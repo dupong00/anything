@@ -50,4 +50,20 @@ public class GroupService {
 
         return groupMemberRepository.findAllByGroup_Id(groupId);
     }
+
+    @Transactional
+    public void joinGroup(Long memberId, String inviteCode){
+        Group group = groupRepository.findByInvitedCode(inviteCode)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
+
+        if (groupMemberRepository.existsByMemberIdAndGroup_Id(memberId, group.getId())){
+            throw new BusinessException(GroupErrorCode.ALREADY_GROUP_MEMBER);
+        }
+
+        group.validateInviteCode(inviteCode);
+
+        GroupMember newMember = GroupMember.create(memberId, group);
+
+        groupMemberRepository.save(newMember);
+    }
 }

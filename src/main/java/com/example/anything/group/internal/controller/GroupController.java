@@ -76,4 +76,17 @@ public class GroupController {
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(groupMembers));
     }
+
+    @Operation(summary = "그룹 초대코드 가입")
+    @PostMapping("/public/group/join")
+    public ResponseEntity<?> joinGroup(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam String inviteCode
+    ){
+        Long userId = Long.parseLong(userDetails.getUsername());
+
+        groupService.joinGroup(userId, inviteCode);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null));
+    }
 }

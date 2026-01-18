@@ -28,4 +28,11 @@ public class GroupMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     Group group;
+
+    public static GroupMember create(Long memberId, Group group){
+        return GroupMember.builder()
+                .memberId(memberId)
+                .group(group)
+                .build();
+    }
 }

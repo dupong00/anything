@@ -2,6 +2,7 @@ package com.example.anything.group.internal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.anyLong;
@@ -15,8 +16,10 @@ import com.example.anything.group.internal.domain.GroupErrorCode;
 import com.example.anything.group.internal.domain.GroupMember;
 import com.example.anything.group.internal.repository.GroupMemberRepository;
 import com.example.anything.group.internal.repository.GroupRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,11 +40,26 @@ class GroupServiceTest {
     @Mock
     private GroupMemberRepository groupMemberRepository;
 
+    private Group group;
+    private final String inviteCode = "ABC123";
+    private final Long memberId = 1L;
+
+    @BeforeEach
+    void setUp() {
+        // 기본 그룹 객체 생성
+        group = Group.builder()
+                .id(10L)
+                .name("테스트 그룹")
+                .invitedCode(inviteCode)
+                .expiredAt(LocalDateTime.now().plusDays(1))
+                .ownerId(1L)
+                .build();
+    }
+
     @Test
     @DisplayName("그룹을 성공적으로 생성하고 ID를 반환한다")
     void createGroup() {
         // given
-        Group group = Group.create("그룹", 1L);
         ReflectionTestUtils.setField(group, "id", 100L);
         given(groupRepository.save(any(Group.class))).willReturn(group);
 
@@ -57,10 +75,9 @@ class GroupServiceTest {
     @DisplayName("방장이 그룹 삭제를 요청하면 성공적으로 삭제된다")
     void deleteGroupSuccess() {
         // given
-        Long groupId = 1L;
-        Long ownerId = 10L;
+        Long groupId = 10L;
+        Long ownerId = 1L;
 
-        Group group = Group.create("테스트 그룹", ownerId);
         ReflectionTestUtils.setField(group, "id", groupId);
 
         given(groupRepository.findById(groupId)).willReturn(Optional.of(group));
@@ -147,5 +164,57 @@ class GroupServiceTest {
         assertThatThrownBy(() -> groupService.getGroupMembers(1L, groupId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining(GroupErrorCode.NOT_GROUP_MEMBER.getMessage());
+    }
+
+    @Test
+    @DisplayName("초대 코드로 그룹 가입에 성공한다")
+    void joinGroup_Success() {
+        // given
+        given(groupRepository.findByInvitedCode(inviteCode)).willReturn(Optional.of(group));
+        given(groupMemberRepository.existsByMemberIdAndGroup_Id(memberId, group.getId())).willReturn(false);
+
+        // when
+        groupService.joinGroup(memberId, inviteCode);
+
+        // then
+        verify(groupMemberRepository, times(1)).save(any(GroupMember.class));
+    }
+
+    @Test
+    @DisplayName("이미 가입된 그룹인 경우 예외가 발생한다")
+    void joinGroup_Fail_AlreadyMember() {
+        // given
+        given(groupRepository.findByInvitedCode(inviteCode)).willReturn(Optional.of(group));
+        given(groupMemberRepository.existsByMemberIdAndGroup_Id(memberId, group.getId())).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> groupService.joinGroup(memberId, inviteCode))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(GroupErrorCode.ALREADY_GROUP_MEMBER.getMessage());
+    }
+
+    @Test
+    @DisplayName("초대 코드가 만료된 경우 가입에 실패한다")
+    void joinGroup_Fail_ExpiredCode() {
+        // given: 만료 시간을 과거로 설정
+        ReflectionTestUtils.setField(group, "expiredAt", LocalDateTime.now().minusHours(1));
+        given(groupRepository.findByInvitedCode(inviteCode)).willReturn(Optional.of(group));
+
+        // when & then
+        assertThatThrownBy(() -> groupService.joinGroup(memberId, inviteCode))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(GroupErrorCode.EXPIRED_INVITE_CODE.getMessage());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 초대 코드인 경우 가입에 실패한다")
+    void joinGroup_Fail_NotFound() {
+        // given
+        given(groupRepository.findByInvitedCode(anyString())).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> groupService.joinGroup(memberId, "WRONG"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(GroupErrorCode.GROUP_NOT_FOUND.getMessage());
     }
 }
