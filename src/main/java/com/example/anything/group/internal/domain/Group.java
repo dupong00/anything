@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -59,5 +60,18 @@ public class Group {
         if (this.ownerId == null || !this.ownerId.equals(userId)) {
             throw new BusinessException(GroupErrorCode.NOT_GROUP_OWNER);
         }
+    }
+
+    public void validateInviteCode(String invitedCode){
+        if (invitedCode == null || !Objects.equals(this.invitedCode, invitedCode)){
+            throw new BusinessException(GroupErrorCode.INVALID_INVITE_CODE);
+        }
+
+        if (isInviteCodeExpired()){
+            throw new BusinessException(GroupErrorCode.EXPIRED_INVITE_CODE);
+        }
+    }
+    private boolean isInviteCodeExpired(){
+        return expiredAt != null && expiredAt.isBefore(LocalDateTime.now());
     }
 }

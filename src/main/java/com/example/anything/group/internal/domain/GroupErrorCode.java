@@ -10,7 +10,10 @@ import org.springframework.http.HttpStatus;
 public enum GroupErrorCode implements ErrorCode {
     NOT_GROUP_OWNER(HttpStatus.BAD_REQUEST,"G001", "그룹 관리자가 아닙니다."),
     GROUP_NOT_FOUND(HttpStatus.BAD_REQUEST,"G002", "그룹이 존재하지 않습니다."),
-    NOT_GROUP_MEMBER(HttpStatus.BAD_REQUEST,"G003", "해당 그룹에 멤버가 아닙니다.");
+    NOT_GROUP_MEMBER(HttpStatus.BAD_REQUEST,"G003", "해당 그룹에 멤버가 아닙니다."),
+    INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST,"G004", "초대코드가 맞지 않습니다."),
+    EXPIRED_INVITE_CODE(HttpStatus.BAD_REQUEST,"G005", "초대코드가 만료되었습니다."),
+    ALREADY_GROUP_MEMBER(HttpStatus.BAD_REQUEST,"G006", "이미 그룹에 가입되었습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
