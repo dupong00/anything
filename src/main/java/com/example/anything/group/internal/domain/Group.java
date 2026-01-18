@@ -56,7 +56,7 @@ public class Group {
     }
 
     public void validateOwner(Long userId) {
-        if (!this.ownerId.equals(userId)) {
+        if (this.ownerId == null || !this.ownerId.equals(userId)) {
             throw new BusinessException(GroupErrorCode.NOT_GROUP_OWNER);
         }
     }
