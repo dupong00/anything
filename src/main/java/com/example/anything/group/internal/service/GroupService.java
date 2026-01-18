@@ -31,6 +31,8 @@ public class GroupService {
 
         group.validateOwner(ownerId);
 
+        groupMemberRepository.deleteAllByGroupId(groupId);
+
         groupRepository.delete(group);
     }
 

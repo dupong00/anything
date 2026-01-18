@@ -3,6 +3,7 @@ package com.example.anything.group.internal.repository;
 import com.example.anything.group.internal.domain.GroupMember;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,4 +16,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember,Long> {
     boolean existsByMemberIdAndGroup_Id(long memberId, long groupId);
 
     List<GroupMember> findAllByGroup_Id(Long groupId);
+
+    @Modifying
+    @Query("DELETE FROM GroupMember gm WHERE gm.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") Long groupId);
 }
