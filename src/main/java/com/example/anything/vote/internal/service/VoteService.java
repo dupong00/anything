@@ -128,9 +128,12 @@ public class VoteService {
                 .toList();
     }
 
+    @Transactional
     public BallotBoxDetailResponse getBallotBox(Long memberId, Long ballotBoxId){
         BallotBox ballotBox = ballotBoxRepository.findById(ballotBoxId)
                 .orElseThrow(() -> new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_FOUND));
+
+        ballotBox.checkAndClose();
 
         if (!groupModulePort.isMemberOfGroup(memberId, ballotBox.getGroupId())){
             throw new BusinessException(VoteErrorCode.BALLOT_BOX_NOT_FOUND);
