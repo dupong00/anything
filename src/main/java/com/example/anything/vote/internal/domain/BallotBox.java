@@ -43,6 +43,7 @@ public class BallotBox {
     private String title;
     private LocalDateTime createAt;
     private LocalDateTime closedAt;
+    @Column(nullable = false)
     private LocalDateTime deadline;
 
     @Enumerated(EnumType.STRING)
@@ -63,6 +64,11 @@ public class BallotBox {
     // method
     public static BallotBox create(Long groupId, Long creatorId, String title, LocalDateTime deadline,
                                    double latitude, double longitude, String locationName) {
+
+        if (deadline == null) {
+            throw new BusinessException(VoteErrorCode.INVALID_DEADLINE);
+        }
+
         return BallotBox.builder()
                 .groupId(groupId)
                 .creatorId(creatorId)

@@ -33,7 +33,7 @@ public record BallotBoxDetailResponse (
         @Schema(description = "투표 선택지 및 실시간 득표 현황 리스트")
         List<OptionDto> options,
 
-        @Size(min = 1, max = 3)
+        @Size(max = 3)
         @Schema(description = "1위 메뉴 리스트, 동표 가능", example = "[1, 3]")
         List<Long> winners
 ){
@@ -58,7 +58,7 @@ public record BallotBoxDetailResponse (
                 ballotBox.getVoteOptions().stream()
                     .map(option -> OptionDto.from(option, total))
                     .toList(),
-                ballotBox.getWinnerMenuIds()
+                winners
         );
     }
 
