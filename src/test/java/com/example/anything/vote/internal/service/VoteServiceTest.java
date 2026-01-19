@@ -13,6 +13,7 @@ import com.example.anything.vote.application.port.MenuModulePort;
 import com.example.anything.vote.dto.*;
 import com.example.anything.vote.internal.domain.*;
 import com.example.anything.vote.internal.repository.*;
+import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -217,5 +218,42 @@ class VoteServiceTest {
         assertEquals(VoteErrorCode.BALLOT_BOX_NOT_AUTHORITY, exception.getErrorCode());
         // 상태가 변경되지 않았는지 확인
         assertEquals(Status.ACTIVE, ballotBox.getStatus());
+    }
+
+    @Test
+    @DisplayName("마감 시간이 지나고 동표일 때 우승자는 랜덤하게 3명 선정")
+    void calculateWinner_WithTenTie_ShouldSelectThree() {
+        // given
+        BallotBox ballotBox = BallotBox.builder()
+                .status(Status.ACTIVE)
+                .deadline(LocalDateTime.now().minusMinutes(1))
+                .voteOptions(new ArrayList<>())
+                .winnerMenuIds(new ArrayList<>())
+                .build();
+
+        for (long i = 1; i <= 10; i++) {
+            VoteOption option = VoteOption.create(i, "메뉴" + i, ballotBox);
+            ballotBox.getVoteOptions().add(option);
+        }
+
+        ballotBox.checkAndClose();
+
+        assertThat(ballotBox.getStatus()).isEqualTo(Status.CLOSED);
+        assertThat(ballotBox.getWinnerMenuIds()).hasSize(3); // WINNERS_MAX_COUNT 상수 확인
+    }
+
+    @Test
+    @DisplayName("마감 시간이 지나지 않았다면 status는 ACTIVE를 유지하고 우승자는 선정 안됨")
+    void checkAndClose_BeforeDeadline_ShouldNotChangeStatus() {
+        BallotBox ballotBox = BallotBox.builder()
+                .status(Status.ACTIVE)
+                .deadline(LocalDateTime.now().plusHours(1))
+                .winnerMenuIds(new ArrayList<>())
+                .build();
+
+        ballotBox.checkAndClose();
+
+        assertThat(ballotBox.getStatus()).isEqualTo(Status.ACTIVE);
+        assertThat(ballotBox.getWinnerMenuIds()).isEmpty();
     }
 }

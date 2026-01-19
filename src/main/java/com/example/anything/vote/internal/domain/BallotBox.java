@@ -4,6 +4,7 @@ import com.example.anything.common.BusinessException;
 import com.example.anything.vote.Status;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,8 +15,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,6 +31,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "ballot_box")
 public class BallotBox {
+    private static final int WINNERS_MAX_COUNT = 3;
+
+    // domain
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ballot_box_id")
     private Long id;
@@ -37,6 +43,7 @@ public class BallotBox {
     private String title;
     private LocalDateTime createAt;
     private LocalDateTime closedAt;
+    @Column(nullable = false)
     private LocalDateTime deadline;
 
     @Enumerated(EnumType.STRING)
@@ -46,12 +53,22 @@ public class BallotBox {
     private double longitude;
     private String locationName;
 
+    @ElementCollection
+    @Builder.Default
+    private List<Long> winnerMenuIds = new ArrayList<>();
+
     @OneToMany(mappedBy = "ballotBox", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<VoteOption> voteOptions = new ArrayList<>();
 
+    // method
     public static BallotBox create(Long groupId, Long creatorId, String title, LocalDateTime deadline,
                                    double latitude, double longitude, String locationName) {
+
+        if (deadline == null) {
+            throw new BusinessException(VoteErrorCode.INVALID_DEADLINE);
+        }
+
         return BallotBox.builder()
                 .groupId(groupId)
                 .creatorId(creatorId)
@@ -71,10 +88,34 @@ public class BallotBox {
     }
 
     public void checkAndClose() {
-        if (this.status == Status.ACTIVE && isExpired()) {
-            this.status = Status.CLOSED;
-            this.closedAt = LocalDateTime.now();
+        if (this.status != Status.ACTIVE || !this.deadline.isBefore(LocalDateTime.now())) {
+            return;
         }
+
+        this.status = Status.CLOSED;
+        this.closedAt = LocalDateTime.now();
+
+        this.calculateWinner();
+    }
+
+    private void calculateWinner(){
+        int maxCount = this.getVoteOptions().stream()
+                .mapToInt(opt -> opt.getCount() != null ? opt.getCount() : 0)
+                .max()
+                .orElse(0);
+
+        if (maxCount == 0) return;
+
+        List<Long> candidates = this.getVoteOptions().stream()
+                .filter(opt -> opt.getCount() != null &&  opt.getCount() == maxCount)
+                .map(VoteOption::getMenuId)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        Collections.shuffle(candidates);
+
+        this.winnerMenuIds = candidates.stream()
+                .limit(WINNERS_MAX_COUNT)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public void delete(Long memberId){
@@ -88,9 +129,5 @@ public class BallotBox {
 
         this.status = Status.DELETED;
         this.closedAt = LocalDateTime.now();
-    }
-
-    private boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.deadline);
     }
 }
