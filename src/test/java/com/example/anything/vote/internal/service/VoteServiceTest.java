@@ -7,9 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.*;
 
 import com.example.anything.common.BusinessException;
+import com.example.anything.menu.application.port.MenuResponseDto;
 import com.example.anything.vote.Status;
-import com.example.anything.vote.application.port.GroupModulePort;
-import com.example.anything.vote.application.port.MenuModulePort;
+import com.example.anything.group.application.port.GroupModulePort;
+import com.example.anything.menu.application.port.MenuModulePort;
 import com.example.anything.vote.dto.*;
 import com.example.anything.vote.internal.domain.*;
 import com.example.anything.vote.internal.repository.*;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,7 +46,8 @@ class VoteServiceTest {
     @Test
     @DisplayName("투표함 생성: 정상적인 메뉴 목록으로 투표함을 생성하면 성공한다")
     void createBallotBox_Success() {
-        BallotBoxRequest request = new BallotBoxRequest(groupId, 37.0, 127.0, "동두천 집", "오늘 점심 메뉴", List.of(1L, 2L), LocalDateTime.now());
+        CategorySelection categorySelection = new CategorySelection(1L, List.of(1L, 2L, 3L));
+        BallotBoxRequest request = new BallotBoxRequest(groupId, 37.0, 127.0, "동두천 집", "오늘 점심 메뉴", List.of(categorySelection), LocalDateTime.now());
         given(menuModulePort.getMenusByIds(anyList())).willReturn(List.of(
                 new MenuResponseDto(1L, "김치찌개"),
                 new MenuResponseDto(2L, "된장찌개")
@@ -99,8 +102,8 @@ class VoteServiceTest {
         given(groupModulePort.getMyGroupIds(memberId)).willReturn(myGroupIds);
 
         // 가짜 투표함 리스트 생성
-        BallotBox box1 = BallotBox.create(100L, memberId, "투표 1", null, 0.0, 0.0, "장소 1");
-        BallotBox box2 = BallotBox.create(200L, memberId, "투표 2", null, 0.0, 0.0, "장소 2");
+        BallotBox box1 = BallotBox.create(100L, memberId, "투표 1", LocalDateTime.now().plusDays(1), 0.0, 0.0, "장소 1");
+        BallotBox box2 = BallotBox.create(200L, memberId, "투표 2", LocalDateTime.now().plusDays(1), 0.0, 0.0, "장소 2");
         given(ballotBoxRepository.findAllByGroupIdInAndStatusNot(myGroupIds, Status.DELETED)).willReturn(List.of(box1, box2));
 
         // when
@@ -155,7 +158,7 @@ class VoteServiceTest {
     @DisplayName("상세 조회: 그룹 멤버가 아닌 유저가 조회하면 BALLOT_BOX_NOT_FOUND 예외를 던진다")
     void getBallotBox_Forbidden_Member() {
         // given
-        BallotBox ballotBox = BallotBox.create(groupId, memberId, "제목", null, 0.0, 0.0, "장소");
+        BallotBox ballotBox = BallotBox.create(groupId, memberId, "제목", LocalDateTime.now().plusDays(1), 0.0, 0.0, "장소");
         given(ballotBoxRepository.findById(ballotBoxId)).willReturn(Optional.of(ballotBox));
         given(groupModulePort.isMemberOfGroup(memberId, groupId)).willReturn(false);
 
@@ -202,7 +205,7 @@ class VoteServiceTest {
     @DisplayName("실패: 생성자가 아닌 유저가 삭제를 요청하면 권한 예외가 발생한다")
     void deleteBallotBox_NoAuthority() {
         // given
-        Long othermemberId = 999L;
+        Long otherMemberId = 999L;
         BallotBox ballotBox = BallotBox.builder()
                 .id(ballotBoxId)
                 .creatorId(memberId) // 실제 생성자는 1L
@@ -213,7 +216,7 @@ class VoteServiceTest {
 
         // when & then
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> voteService.deleteBallotBox(othermemberId, ballotBoxId));
+                () -> voteService.deleteBallotBox(otherMemberId, ballotBoxId));
 
         assertEquals(VoteErrorCode.BALLOT_BOX_NOT_AUTHORITY, exception.getErrorCode());
         // 상태가 변경되지 않았는지 확인
@@ -236,10 +239,16 @@ class VoteServiceTest {
             ballotBox.getVoteOptions().add(option);
         }
 
+        for (long i = 1; i <= 10; i++) {
+            VoteOption option = VoteOption.create(i, "메뉴" + i, ballotBox);
+            option.addCount();
+            ballotBox.getVoteOptions().add(option);
+        }
+
         ballotBox.checkAndClose();
 
         assertThat(ballotBox.getStatus()).isEqualTo(Status.CLOSED);
-        assertThat(ballotBox.getWinnerMenuIds()).hasSize(3); // WINNERS_MAX_COUNT 상수 확인
+        assertThat(ballotBox.getWinnerMenuIds()).hasSize(3);
     }
 
     @Test
@@ -255,5 +264,63 @@ class VoteServiceTest {
 
         assertThat(ballotBox.getStatus()).isEqualTo(Status.ACTIVE);
         assertThat(ballotBox.getWinnerMenuIds()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("메뉴 ID가 0L인 경우 해당 카테고리의 모든 메뉴를 가져온다")
+    void createBallotBox_withCategoryAll() {
+        // given
+        Long memberId = 1L;
+        // 10번 카테고리 전체(0L) 선택
+        CategorySelection selection = new CategorySelection(10L, List.of(0L));
+        BallotBoxRequest request = createRequest(List.of(selection));
+
+        List<MenuResponseDto> categoryMenus = List.of(
+                new MenuResponseDto(1L, "김치찌개"),
+                new MenuResponseDto(2L, "된장찌개")
+        );
+
+        given(menuModulePort.getMenusByCategoryId(10L)).willReturn(categoryMenus);
+
+        // when
+        voteService.createBallotBox(request, memberId);
+
+        // then
+        verify(menuModulePort).getMenusByCategoryId(10L); // 전체 조회 메서드 호출 확인
+        verify(menuModulePort, never()).getMenusByIds(any()); // 개별 ID 조회는 호출되지 않아야 함
+        verify(ballotBoxRepository).save(any(BallotBox.class)); // 최종 투표함 저장 확인
+    }
+
+    @Test
+    @DisplayName("여러 카테고리에서 중복된 메뉴가 들어와도 Set을 통해 중복 제거된다")
+    void createBallotBox_deduplicationTest() {
+        Long memberId = 1L;
+        CategorySelection sel1 = new CategorySelection(10L, List.of(1L, 2L));
+        CategorySelection sel2 = new CategorySelection(20L, List.of(1L));
+        BallotBoxRequest request = createRequest(List.of(sel1, sel2));
+
+        given(menuModulePort.getMenusByIds(List.of(1L, 2L)))
+                .willReturn(List.of(new MenuResponseDto(1L, "메뉴1"), new MenuResponseDto(2L, "메뉴2")));
+        given(menuModulePort.getMenusByIds(List.of(1L)))
+                .willReturn(List.of(new MenuResponseDto(1L, "메뉴1")));
+
+        // when
+        voteService.createBallotBox(request, memberId);
+
+        // then
+        ArgumentCaptor<BallotBox> captor = ArgumentCaptor.forClass(BallotBox.class);
+        verify(ballotBoxRepository).save(captor.capture());
+    }
+
+    private BallotBoxRequest createRequest(List<CategorySelection> selections) {
+        return new BallotBoxRequest(
+                1L,             // groupId
+                37.0,           // latitude
+                127.0,          // longitude
+                "강남역",        // locationName
+                "오늘 뭐 먹지?",  // title
+                selections,     // selections
+                LocalDateTime.now().plusHours(1) // deadline
+        );
     }
 }
