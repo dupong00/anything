@@ -1,4 +1,4 @@
-package com.example.anything.vote.dto;
+package com.example.anything.menu.application.port;
 
 public record MenuResponseDto (
         Long id,

@@ -1,4 +1,4 @@
-package com.example.anything.vote.application.port;
+package com.example.anything.group.application.port;
 
 import java.util.List;
 
