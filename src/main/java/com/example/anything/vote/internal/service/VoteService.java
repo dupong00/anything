@@ -37,12 +37,27 @@ public class VoteService {
 
     @Transactional
     public Long createBallotBox(BallotBoxRequest request, Long memberId){
-        Set<MenuResponseDto> finalMenus = request.selections().stream()
-                .flatMap(selection -> fetchMenus(selection).stream())
-                .collect(Collectors.toSet());
-
-        if (finalMenus.isEmpty()){
+        if (request.selections() == null || request.selections().isEmpty()) {
             throw new BusinessException(VoteErrorCode.MENU_NOT_FOUND);
+        }
+
+        Set<MenuResponseDto> finalMenus = new HashSet<>();
+
+        for (CategorySelection selection : request.selections()) {
+            List<MenuResponseDto> resolved = fetchMenus(selection);
+
+            if (!selection.menuIds().contains(0L)) {
+                long requestedUniqueCount = selection.menuIds().stream().distinct().count();
+                if (resolved.size() != (int) requestedUniqueCount) {
+                    throw new BusinessException(VoteErrorCode.MENU_NOT_FOUND);
+                }
+            }
+
+            if (resolved.isEmpty()) {
+                throw new BusinessException(VoteErrorCode.MENU_NOT_FOUND);
+            }
+
+            finalMenus.addAll(resolved);
         }
 
         BallotBox ballotBox = BallotBox.create(
