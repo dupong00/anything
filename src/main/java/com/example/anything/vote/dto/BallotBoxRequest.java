@@ -1,7 +1,9 @@
 package com.example.anything.vote.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,8 +24,11 @@ public record BallotBoxRequest (
         @Schema(description = "투표 이름", example = "아무나 먹고 싶은거 투표 ㄱㄱ")
         String title,
 
-        @Schema(description = "메뉴 카테고리 ID", example = "[1, 3, 6, 8, 12]")
-        List<Long> menuList,
+        @NotEmpty(message = "최소 하나 이상의 카테고리를 선택해야 합니다.")
+        @Valid
+        @Schema(description = "선택된 메뉴 카테고리 목록",
+                example = "[{\"categoryId\": 1, \"menuIds\": [1, 2, 3]}]")
+        List<CategorySelection> selections,
 
         @Schema(description = "투표 마감 시간", example = "2026-01-07T18:30:00", type = "string")
         @Future(message = "마감 시간은 현재 시간 이후여야 합니다.")

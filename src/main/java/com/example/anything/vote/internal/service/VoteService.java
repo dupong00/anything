@@ -2,12 +2,13 @@ package com.example.anything.vote.internal.service;
 
 import com.example.anything.common.BusinessException;
 import com.example.anything.vote.Status;
-import com.example.anything.vote.application.port.GroupModulePort;
-import com.example.anything.vote.application.port.MenuModulePort;
+import com.example.anything.group.application.port.GroupModulePort;
+import com.example.anything.menu.application.port.MenuModulePort;
 import com.example.anything.vote.dto.BallotBoxDetailResponse;
 import com.example.anything.vote.dto.BallotBoxRequest;
 import com.example.anything.vote.dto.BallotBoxesResponse;
-import com.example.anything.vote.dto.MenuResponseDto;
+import com.example.anything.vote.dto.CategorySelection;
+import com.example.anything.menu.application.port.MenuResponseDto;
 import com.example.anything.vote.internal.domain.BallotBox;
 import com.example.anything.vote.internal.domain.VoteErrorCode;
 import com.example.anything.vote.internal.domain.VoteOption;
@@ -15,10 +16,10 @@ import com.example.anything.vote.internal.domain.VoteRecord;
 import com.example.anything.vote.internal.repository.BallotBoxRepository;
 import com.example.anything.vote.internal.repository.VoteOptionRepository;
 import com.example.anything.vote.internal.repository.VoteRecordRepository;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +37,27 @@ public class VoteService {
 
     @Transactional
     public Long createBallotBox(BallotBoxRequest request, Long memberId){
-        Set<Long> uniqueIds = new HashSet<>(request.menuList());
-
-        List<MenuResponseDto> menus = menuModulePort.getMenusByIds(new ArrayList<>(uniqueIds));
-
-        if (menus.size() != uniqueIds.size()) {
+        if (request.selections() == null || request.selections().isEmpty()) {
             throw new BusinessException(VoteErrorCode.MENU_NOT_FOUND);
+        }
+
+        Set<MenuResponseDto> finalMenus = new HashSet<>();
+
+        for (CategorySelection selection : request.selections()) {
+            List<MenuResponseDto> resolved = fetchMenus(selection);
+
+            if (!selection.menuIds().contains(0L)) {
+                long requestedUniqueCount = selection.menuIds().stream().distinct().count();
+                if (resolved.size() != (int) requestedUniqueCount) {
+                    throw new BusinessException(VoteErrorCode.MENU_NOT_FOUND);
+                }
+            }
+
+            if (resolved.isEmpty()) {
+                throw new BusinessException(VoteErrorCode.MENU_NOT_FOUND);
+            }
+
+            finalMenus.addAll(resolved);
         }
 
         BallotBox ballotBox = BallotBox.create(
@@ -54,13 +70,20 @@ public class VoteService {
                 request.locationName()
         );
 
-        for (MenuResponseDto menu : menus) {
+        for (MenuResponseDto menu : finalMenus) {
             ballotBox.addVoteOption(menu.id(), menu.name());
         }
 
         ballotBoxRepository.save(ballotBox);
 
         return ballotBox.getId();
+    }
+
+    private List<MenuResponseDto> fetchMenus(CategorySelection selection){
+        if (selection.menuIds().contains(0L)){
+           return menuModulePort.getMenusByCategoryId(selection.categoryId());
+        }
+        return menuModulePort.getMenusByIds(selection.menuIds());
     }
 
     @Transactional

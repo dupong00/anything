@@ -1,8 +1,7 @@
 package com.example.anything.group.infrastructure.adapter;
 
-import com.example.anything.group.internal.domain.GroupMember;
 import com.example.anything.group.internal.repository.GroupMemberRepository;
-import com.example.anything.vote.application.port.GroupModulePort;
+import com.example.anything.group.application.port.GroupModulePort;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
