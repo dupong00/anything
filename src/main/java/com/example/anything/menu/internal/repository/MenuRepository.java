@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface MenuRepository extends JpaRepository<Menu, Long> {
     List<Menu> findAllByIdIn(List<Long> menuIds);
+    List<Menu> findAllByMenuCategoryId(Long categoryId);
 }
