@@ -1,8 +1,8 @@
-package com.example.anything.vote.application.port;
+package com.example.anything.menu.application.port;
 
-import com.example.anything.vote.dto.MenuResponseDto;
 import java.util.List;
 
 public interface MenuModulePort {
      List<MenuResponseDto> getMenusByIds(List<Long> menuIds);
+     List<MenuResponseDto> getMenusByCategoryId(Long categoryId);
 }
