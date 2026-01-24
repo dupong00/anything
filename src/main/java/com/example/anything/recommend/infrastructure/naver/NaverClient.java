@@ -30,7 +30,7 @@ public class NaverClient {
                 .fromUriString("https://openapi.naver.com/v1/search/local.json")
                 .queryParam("query", fullQuery)
                 .queryParam("display", 10)
-                .queryParam("sort", "random")
+                .queryParam("sort", "comment")
                 .build()
                 .toUriString();
 
