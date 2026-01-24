@@ -1,6 +1,6 @@
 package com.example.anything.recommend.infrastructure.naver;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,18 +24,16 @@ class NaverMapClientTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getResults()).isNotNull();
+        assertThat(response.getResults()).isNotEmpty();
 
-        if (!response.getResults().isEmpty()) {
-            ReverseGeocodingResponse.Region region = response.getResults().getFirst().getRegion();
-            String area1 = region.getArea1().getName(); // 경기도
-            String area2 = region.getArea2().getName(); // 동두천시
-            String area3 = region.getArea3().getName(); // 지행동
+        ReverseGeocodingResponse.Region region = response.getResults().getFirst().getRegion();
+        String area1 = region.getArea1().getName(); // 경기도
+        String area2 = region.getArea2().getName(); // 동두천시
+        String area3 = region.getArea3().getName(); // 지행동
 
-            System.out.println("변환된 주소: " + area1 + " " + area2 + " " + area3);
+        System.out.println("변환된 주소: " + area1 + " " + area2 + " " + area3);
 
-            // 실제 값이 잘 들어오는지 검증
-            assertThat(area1).isEqualTo("경기도");
-            assertThat(area2).contains("동두천시");
-        }
+        assertThat(area1).isEqualTo("경기도");
+        assertThat(area2).contains("동두천시");
     }
 }

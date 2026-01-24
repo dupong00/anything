@@ -20,11 +20,11 @@ class NaverClientTest {
         String menuName = "돈가스";
 
         // when
-        String result = naverClient.searchLocal(localName, menuName);
+        LocalSearchResponse result = naverClient.searchLocal(localName, menuName);
 
         // then
         System.out.println("API Response: " + result);
         assertThat(result).isNotNull();
-        assertThat(result).contains("items");
+        assertThat(result.getItems()).isNotNull();
     }
 }
