@@ -32,3 +32,6 @@ naver:
     dev:
       client-id: ${NAVER_CLIENT_ID}
       client-secret: ${NAVER_CLIENT_SECRET}
+    cloud:
+      client-id: ${NAVER_CLOUD_CLIENT_ID}
+      client-secret: ${NAVER_CLOUD_CLIENT_SECRET}
