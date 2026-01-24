@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -36,11 +37,20 @@ public class NaverMapClient {
         headers.set("x-ncp-apigw-api-key-id", cloudClientId);
         headers.set("x-ncp-apigw-api-key", cloudClientSecret);
 
-        return restTemplate.exchange(
+        ResponseEntity<ReverseGeocodingResponse> responseEntity = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
                 ReverseGeocodingResponse.class
-        ).getBody();
+        );
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+            throw new RuntimeException(String.format(
+                    "네이버 역지오코딩 API 호출 실패 또는 빈 응답 수신 (좌표: %f, %f, 상태코드: %s)",
+                    longitude, latitude, responseEntity.getStatusCode()
+            ));
+        }
+
+        return responseEntity.getBody();
     }
 }
