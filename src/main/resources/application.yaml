@@ -26,3 +26,12 @@ jwt:
   secret: ${JWT_SECRET}
   expiration-time: ${JWT_EXPIRE}
   refresh-expiration-time: ${JWT_REFRESH_EXPIRE}
+
+naver:
+  api:
+    dev:
+      client-id: ${NAVER_CLIENT_ID}
+      client-secret: ${NAVER_CLIENT_SECRET}
+    cloud:
+      client-id: ${NAVER_CLOUD_CLIENT_ID}
+      client-secret: ${NAVER_CLOUD_CLIENT_SECRET}
