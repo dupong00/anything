@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import lombok.Data;
+import lombok.Getter;
 
 @Data
 @Schema(description = "Naver 지도 좌표로 동네 검색 응답 정보")
@@ -12,6 +13,7 @@ public class ReverseGeocodingResponse {
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
     public static class Result {
         private String name;
         private Region region;
