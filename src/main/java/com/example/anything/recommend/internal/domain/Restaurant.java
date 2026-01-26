@@ -33,7 +33,7 @@ public class Restaurant {
     private double longitude;
     private double latitude;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String apiId;
 
     public static Restaurant create(String name, String apiId, String category, String roadAddress, String address, double longitude, double latitude) {
