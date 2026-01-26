@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +18,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(
+        name = "restaurant_menu",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_ballot_box_menu_restaurant",
+                        columnNames = {"ballotBoxId", "menuId", "restaurant_id"} // 복합 유니크 키 설정
+                )
+        }
+)
 public class RestaurantMenu {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

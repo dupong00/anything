@@ -16,10 +16,12 @@ import com.example.anything.vote.application.port.VoteModulePort;
 import com.example.anything.vote.application.port.WinnerMenuInfo;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -37,17 +39,33 @@ public class RecommendService {
             return;
         }
 
-        WinnerMenuInfo winners = voteModulePort.getWinnerMenus(ballotBoxId);
+        try{
+            WinnerMenuInfo winners = voteModulePort.getWinnerMenus(ballotBoxId);
 
-        List<Long> winnerMenus = winners.getWinnerMenus();
+            List<Long> winnerMenus = winners.getWinnerMenus();
 
-        List<MenuResponseDto> menus = menuModulePort.getMenusByIds(winnerMenus);
+            List<MenuResponseDto> menus = menuModulePort.getMenusByIds(winnerMenus);
 
-        ReverseGeocodingResponse addressInfo = naverMapClient.reverseGeocoding(
-                winners.getLongitude(),
-                winners.getLatitude()
-        );
+            ReverseGeocodingResponse addressInfo = naverMapClient.reverseGeocoding(
+                    winners.getLongitude(),
+                    winners.getLatitude()
+            );
 
+            String localName = getLocalName(addressInfo);
+
+            for (MenuResponseDto menu : menus) {
+                LocalSearchResponse localSearchResponse = naverClient.searchLocal(localName, menu.name());
+
+                if (localSearchResponse.getTotal() > 0) {
+                    searchConverter(localSearchResponse, ballotBoxId, menu.id(), menu.name());
+                }
+            }
+        } catch (DataIntegrityViolationException e) {
+            log.info("중복된 추천 생성 요청이 무시되었습니다. ballotBoxId: {}", ballotBoxId);
+        }
+    }
+
+    private static String getLocalName(ReverseGeocodingResponse addressInfo) {
         if (addressInfo == null || addressInfo.getResults() == null || addressInfo.getResults().isEmpty()) {
             throw new BusinessException(RecommendErrorCode.ADDRESS_NOT_FOUND);
         }
@@ -56,15 +74,7 @@ public class RecommendService {
         String area1 = region.getArea1().getName();
         String area2 = region.getArea2().getName();
         String area3 = region.getArea3().getName();
-        String localName = String.format("%s %s %s", area1, area2, area3);
-
-        for (MenuResponseDto menu : menus) {
-            LocalSearchResponse localSearchResponse = naverClient.searchLocal(localName, menu.name());
-
-            if (localSearchResponse.getTotal() > 0) {
-                searchConverter(localSearchResponse, ballotBoxId, menu.id(), menu.name());
-            }
-        }
+        return String.format("%s %s %s", area1, area2, area3);
     }
 
     @Transactional
