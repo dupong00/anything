@@ -22,6 +22,8 @@ public class RestaurantMenu {
 
     private Long menuId;
 
+    private Long ballotBoxId;
+
     private String menuName;
 
     private int exposureCount;
@@ -31,9 +33,10 @@ public class RestaurantMenu {
     @ManyToOne(fetch = FetchType.LAZY)
     private Restaurant restaurant;
 
-    public static RestaurantMenu create(Long menuId, String menuName, Restaurant restaurant) {
+    public static RestaurantMenu create(Long menuId, Long ballotBoxId,String menuName, Restaurant restaurant) {
         return RestaurantMenu.builder()
                 .menuId(menuId)
+                .ballotBoxId(ballotBoxId)
                 .menuName(menuName)
                 .restaurant(restaurant)
                 .build();

@@ -11,17 +11,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 @RequiredArgsConstructor
 public class RecommendController {
     private final RecommendService recommendService;
 
-    @GetMapping("/member/ballot-boxes/{id}/result")
-    public ResponseEntity<?> getRecommendations(
+    @PostMapping("/member/ballot-boxes/{id}/result")
+    public ResponseEntity<?> createRecommend(
             @PathVariable("id") Long ballotBoxId
     ) {
-        List<RestaurantMenu> results = recommendService.createRecommend(ballotBoxId);
+        recommendService.generateRecommend(ballotBoxId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
+    }
+
+    @GetMapping("/member/ballot-boxes/{id}/result")
+    public ResponseEntity<?> getRecommend(
+            @PathVariable("id") Long ballotBoxId
+    ){
+        List<RestaurantMenu> results = recommendService.getRecommend(ballotBoxId);
 
         List<RecommendResultResponse> response = results.stream()
                 .map(RecommendResultResponse::from)

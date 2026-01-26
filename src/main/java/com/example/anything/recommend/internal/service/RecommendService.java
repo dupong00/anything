@@ -2,6 +2,7 @@ package com.example.anything.recommend.internal.service;
 
 import com.example.anything.menu.application.port.MenuModulePort;
 import com.example.anything.menu.application.port.MenuResponseDto;
+import com.example.anything.recommend.dto.RecommendResultResponse;
 import com.example.anything.recommend.infrastructure.naver.LocalSearchResponse;
 import com.example.anything.recommend.infrastructure.naver.NaverClient;
 import com.example.anything.recommend.infrastructure.naver.NaverMapClient;
@@ -31,13 +32,16 @@ public class RecommendService {
     private final NaverMapClient naverMapClient;
 
     @Transactional
-    public List<RestaurantMenu> createRecommend(Long ballotBoxId){
+    public void generateRecommend(Long ballotBoxId){
+        if (restaurantMenuRepository.existsByBallotBoxId(ballotBoxId)){
+            return;
+        }
+
         WinnerMenuInfo winners = voteModulePort.getWinnerMenus(ballotBoxId);
 
         List<Long> winnerMenus = winners.getWinnerMenus();
 
         List<MenuResponseDto> menus = menuModulePort.getMenusByIds(winnerMenus);
-
 
         ReverseGeocodingResponse addressInfo = naverMapClient.reverseGeocoding(
                 winners.getLongitude(),
@@ -50,24 +54,18 @@ public class RecommendService {
         String area3 = region.getArea3().getName();
         String localName = String.format("%s %s %s", area1, area2, area3);
 
-        List<RestaurantMenu> totalResults = new ArrayList<>();
-
         for (MenuResponseDto menu : menus) {
             LocalSearchResponse localSearchResponse = naverClient.searchLocal(localName, menu.name());
 
             if (localSearchResponse.getTotal() > 0) {
-                List<RestaurantMenu> savedRestaurantMenu = searchConverter(localSearchResponse, menu.id(), menu.name());
-                totalResults.addAll(savedRestaurantMenu);
+                searchConverter(localSearchResponse, ballotBoxId, menu.id(), menu.name());
             }
         }
-
-        return totalResults;
     }
 
     @Transactional
-    public List<RestaurantMenu> searchConverter(LocalSearchResponse response, Long targetMenuId, String menuName) {
-        return response.getItems().stream()
-                .map(item -> {
+    public void searchConverter(LocalSearchResponse response, Long ballotBoxId, Long targetMenuId, String menuName) {
+        response.getItems().forEach(item -> {
                     String cleanedTitle = cleanTitle(item.getTitle());
                     double longitude = item.getMapx() / 10000000.0;
                     double latitude = item.getMapy() / 10000000.0;
@@ -87,13 +85,17 @@ public class RecommendService {
 
                     RestaurantMenu restaurantMenu = RestaurantMenu.create(
                             targetMenuId,
+                            ballotBoxId,
                             menuName,
                             restaurant
                     );
 
-                    return restaurantMenuRepository.save(restaurantMenu);
-                })
-                .collect(Collectors.toList());
+                    restaurantMenuRepository.save(restaurantMenu);
+                });
+    }
+
+    public List<RestaurantMenu> getRecommend(Long ballotBoxId){
+        return restaurantMenuRepository.findByBallotBoxId(ballotBoxId);
     }
 
     private String cleanTitle(String title) {

@@ -7,20 +7,19 @@ import static org.mockito.BDDMockito.given;
 import com.example.anything.menu.application.port.MenuModulePort;
 import com.example.anything.menu.application.port.MenuResponseDto;
 import com.example.anything.recommend.internal.domain.RestaurantMenu;
+import com.example.anything.recommend.internal.repository.RestaurantMenuRepository;
 import com.example.anything.recommend.internal.repository.RestaurantRepository;
 import com.example.anything.vote.application.port.VoteModulePort;
 import com.example.anything.vote.application.port.WinnerMenuInfo;
 import java.util.List;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Transactional
 class RecommendServiceTest {
 
     @Autowired
@@ -28,6 +27,9 @@ class RecommendServiceTest {
 
     @Autowired
     private RestaurantRepository restaurantRepository;
+
+    @Autowired
+    private RestaurantMenuRepository restaurantMenuRepository;
 
     @MockitoBean
     private VoteModulePort voteModulePort;
@@ -50,14 +52,16 @@ class RecommendServiceTest {
         given(voteModulePort.getWinnerMenus(ballotBoxId)).willReturn(winnerInfo);
         given(menuModulePort.getMenusByIds(anyList())).willReturn(List.of(menuDto));
 
-        List<RestaurantMenu> results = recommendService.createRecommend(ballotBoxId);
+        recommendService.generateRecommend(ballotBoxId);
 
-        assertThat(results).isNotEmpty();
+        List<RestaurantMenu> savedResults = restaurantMenuRepository.findByBallotBoxId(ballotBoxId);
 
-        RestaurantMenu savedMapping = results.getFirst();
-        assertThat(savedMapping.getMenuName()).isEqualTo("돈가스");
+        assertThat(savedResults).isNotEmpty();
+        RestaurantMenu firstResult = savedResults.getFirst();
+        assertThat(firstResult.getMenuName()).isEqualTo("돈가스");
+        assertThat(firstResult.getBallotBoxId()).isEqualTo(ballotBoxId);
 
-        boolean exists = restaurantRepository.findByApiId(savedMapping.getRestaurant().getApiId()).isPresent();
+        boolean exists = restaurantRepository.findByApiId(firstResult.getRestaurant().getApiId()).isPresent();
         assertThat(exists).isTrue();
     }
 }
