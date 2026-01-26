@@ -1,5 +1,6 @@
 package com.example.anything.recommend.internal.service;
 
+import com.example.anything.common.BusinessException;
 import com.example.anything.menu.application.port.MenuModulePort;
 import com.example.anything.menu.application.port.MenuResponseDto;
 import com.example.anything.recommend.dto.RecommendResultResponse;
@@ -7,6 +8,7 @@ import com.example.anything.recommend.infrastructure.naver.LocalSearchResponse;
 import com.example.anything.recommend.infrastructure.naver.NaverClient;
 import com.example.anything.recommend.infrastructure.naver.NaverMapClient;
 import com.example.anything.recommend.infrastructure.naver.ReverseGeocodingResponse;
+import com.example.anything.recommend.internal.domain.RecommendErrorCode;
 import com.example.anything.recommend.internal.domain.Restaurant;
 import com.example.anything.recommend.internal.domain.RestaurantMenu;
 import com.example.anything.recommend.internal.repository.RestaurantMenuRepository;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +51,10 @@ public class RecommendService {
                 winners.getLatitude()
         );
 
+        if (addressInfo.getResults() == null || addressInfo.getResults().isEmpty()) {
+            throw new BusinessException(RecommendErrorCode.ADDRESS_NOT_FOUND);
+        }
+
         var region =  addressInfo.getResults().getFirst().getRegion();
         String area1 = region.getArea1().getName();
         String area2 = region.getArea2().getName();
@@ -66,32 +73,37 @@ public class RecommendService {
     @Transactional
     public void searchConverter(LocalSearchResponse response, Long ballotBoxId, Long targetMenuId, String menuName) {
         response.getItems().forEach(item -> {
-                    String cleanedTitle = cleanTitle(item.getTitle());
-                    double longitude = item.getMapx() / 10000000.0;
-                    double latitude = item.getMapy() / 10000000.0;
-                    Restaurant restaurant = restaurantRepository.findByApiId(item.getLink())
-                            .orElseGet(() -> restaurantRepository.save(
-                                    Restaurant.create(
-                                            cleanedTitle,
-                                            item.getLink(),
-                                            item.getCategory(),
-                                            item.getRoadAddress(),
-                                            item.getAddress(),
-                                            longitude,
-                                            latitude
-                                    )
-                            ));
+            Restaurant restaurant = getOrCreateRestaurant(item);
 
+            RestaurantMenu restaurantMenu = RestaurantMenu.create(
+                    targetMenuId,
+                    ballotBoxId,
+                    menuName,
+                    restaurant
+            );
 
-                    RestaurantMenu restaurantMenu = RestaurantMenu.create(
-                            targetMenuId,
-                            ballotBoxId,
-                            menuName,
-                            restaurant
-                    );
+            restaurantMenuRepository.save(restaurantMenu);
+        });
+    }
 
-                    restaurantMenuRepository.save(restaurantMenu);
-                });
+    private Restaurant getOrCreateRestaurant(LocalSearchResponse.LocalItem item) {
+        try {
+            return restaurantRepository.findByApiId(item.getLink())
+                    .orElseGet(() -> restaurantRepository.save(
+                            Restaurant.create(
+                                    cleanTitle(item.getTitle()),
+                                    item.getLink(),
+                                    item.getCategory(),
+                                    item.getRoadAddress(),
+                                    item.getAddress(),
+                                    item.getMapx() / 10000000.0,
+                                    item.getMapy() / 10000000.0
+                            )
+                    ));
+        } catch (DataIntegrityViolationException e) {
+            return restaurantRepository.findByApiId(item.getLink())
+                    .orElseThrow(() -> new BusinessException(RecommendErrorCode.RETRY_FAILED));
+        }
     }
 
     public List<RestaurantMenu> getRecommend(Long ballotBoxId){
