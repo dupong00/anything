@@ -22,7 +22,12 @@ public class GroupService {
     @Transactional
     public Long createGroup(String name, Long ownerId){
         Group group = Group.create(name, ownerId);
-        return groupRepository.save(group).getId();
+        Group savedGroup = groupRepository.save(group);
+
+        GroupMember owner = GroupMember.create(ownerId, savedGroup);
+        groupMemberRepository.save(owner);
+
+        return savedGroup.getId();
     }
 
     @Transactional
