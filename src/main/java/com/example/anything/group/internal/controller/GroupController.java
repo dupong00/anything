@@ -53,7 +53,7 @@ public class GroupController {
     }
 
     @Operation(summary = "그룹조회", description = "그룹 조회")
-    @GetMapping("/public/group")
+    @GetMapping("/member/group")
     public ResponseEntity<?> getGroups(
             @AuthenticationPrincipal UserDetails userDetails
             ){
@@ -65,7 +65,7 @@ public class GroupController {
     }
 
     @Operation(summary = "특정 그룹 멤버 조회", description = "특정 그룹 멤버조회")
-    @GetMapping("/public/group/{id}")
+    @GetMapping("/member/group/{id}")
     public ResponseEntity<?> getGroupMembers(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable(value = "id") Long groupId
@@ -78,7 +78,7 @@ public class GroupController {
     }
 
     @Operation(summary = "그룹 초대코드 가입")
-    @PostMapping("/public/group/join")
+    @PostMapping("/member/group/join")
     public ResponseEntity<?> joinGroup(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam String inviteCode
