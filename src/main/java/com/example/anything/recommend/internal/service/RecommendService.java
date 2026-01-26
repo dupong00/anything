@@ -3,7 +3,6 @@ package com.example.anything.recommend.internal.service;
 import com.example.anything.common.BusinessException;
 import com.example.anything.menu.application.port.MenuModulePort;
 import com.example.anything.menu.application.port.MenuResponseDto;
-import com.example.anything.recommend.dto.RecommendResultResponse;
 import com.example.anything.recommend.infrastructure.naver.LocalSearchResponse;
 import com.example.anything.recommend.infrastructure.naver.NaverClient;
 import com.example.anything.recommend.infrastructure.naver.NaverMapClient;
@@ -15,9 +14,7 @@ import com.example.anything.recommend.internal.repository.RestaurantMenuReposito
 import com.example.anything.recommend.internal.repository.RestaurantRepository;
 import com.example.anything.vote.application.port.VoteModulePort;
 import com.example.anything.vote.application.port.WinnerMenuInfo;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;

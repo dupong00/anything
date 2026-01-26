@@ -14,7 +14,6 @@ import com.example.anything.recommend.infrastructure.naver.NaverMapClient;
 import com.example.anything.recommend.infrastructure.naver.ReverseGeocodingResponse;
 import com.example.anything.recommend.internal.domain.RestaurantMenu;
 import com.example.anything.recommend.internal.repository.RestaurantMenuRepository;
-import com.example.anything.recommend.internal.repository.RestaurantRepository;
 import com.example.anything.vote.application.port.VoteModulePort;
 import com.example.anything.vote.application.port.WinnerMenuInfo;
 import java.util.List;
