@@ -51,7 +51,7 @@ public class RecommendService {
                 winners.getLatitude()
         );
 
-        if (addressInfo.getResults() == null || addressInfo.getResults().isEmpty()) {
+        if (addressInfo == null || addressInfo.getResults() == null || addressInfo.getResults().isEmpty()) {
             throw new BusinessException(RecommendErrorCode.ADDRESS_NOT_FOUND);
         }
 
